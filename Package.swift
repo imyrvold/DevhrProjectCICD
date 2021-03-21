@@ -21,7 +21,6 @@ let package = Package(
                 .product(name: "SotoS3", package: "soto"),
                 .product(name: "SotoRekognition", package: "soto"),
                 .product(name: "SotoDynamoDB", package: "soto")
-                // .product(name: "S3", package: "AWSSDKSwift")
             ]),
         .testTarget(
             name: "RecognitionFunctionTests",
