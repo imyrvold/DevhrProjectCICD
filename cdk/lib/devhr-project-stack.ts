@@ -26,6 +26,7 @@ export class DevhrProjectStack extends cdk.Stack {
     // Amazon DynamoDB table for storing image labels
     // =================================================================================
     const table = new dynamodb.Table(this, 'ImageLabels', {
+      tableName: 'ImageLabels',
       partitionKey: { name: 'image', type: dynamodb.AttributeType.STRING },
       removalPolicy: cdk.RemovalPolicy.DESTROY
     })
