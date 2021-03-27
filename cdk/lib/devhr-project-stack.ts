@@ -43,17 +43,6 @@ export class DevhrProjectStack extends cdk.Stack {
       },
       timeout: Duration.seconds(5)
     });
-    // const rekFn = new lambda.Function(this, 'recognitionFunction', {
-    //   code: lambda.Code.fromAsset('rekognitionlambda'),
-    //   runtime: lambda.Runtime.PYTHON_3_7,
-    //   handler: 'index.handler',
-    //   timeout: Duration.seconds(30),
-    //   memorySize: 1024,
-      // environment: {
-      //   'TABLE': table.tableName,
-      //   'BUCKET': imageBucket.bucketName
-      // }
-    // })
     rekFn.addEventSource(new event_sources.S3EventSource(imageBucket, { events: [s3.EventType.OBJECT_CREATED] }))
     imageBucket.grantRead(rekFn)
     table.grantWriteData(rekFn)
