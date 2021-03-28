@@ -11,6 +11,15 @@
         }
       },
       {
+        "package": "PythonKit",
+        "repositoryURL": "https://github.com/pvieito/PythonKit.git",
+        "state": {
+          "branch": "master",
+          "revision": "c77231820148515a77e9bba5016a57e5a88ef007",
+          "version": null
+        }
+      },
+      {
         "package": "soto",
         "repositoryURL": "https://github.com/soto-project/soto.git",
         "state": {

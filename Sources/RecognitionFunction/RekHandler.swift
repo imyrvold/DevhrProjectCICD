@@ -11,6 +11,7 @@ import SotoRekognition
 import SotoDynamoDB
 import SotoS3
 import Foundation
+import Python
 
 struct RekHandler: EventLoopLambdaHandler {
     typealias In = AWSLambdaEvents.S3.Event
@@ -78,9 +79,15 @@ struct RekHandler: EventLoopLambdaHandler {
         return EventLoopFuture<Out>.andAllSucceed(futureRecordsResult, on: context.eventLoop)
     }
     
-    func resizeImage() {
-        
-    }
+//    func createThumbnail(for url: URL) -> Image? {
+//        let size = CGSize(width: 60, height: 90)
+//        let options = [ kQLThumbnailOptionIconModeKey: false ]
+//        let scale: CGFloat = 72
+//        
+//        let ref = QLThumbnailCreate(kCFAllocatorDefault, url as NSURL, size, options as CFDictionary)
+//        
+//        
+//    }
     
     func getImage( of bucket: String, with thekey: String, context: Lambda.Context) -> EventLoopFuture<SotoS3.S3.GetObjectOutput> {
         let s3 = S3(client: awsClient)
