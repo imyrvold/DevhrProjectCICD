@@ -50,6 +50,8 @@ struct RekHandler: EventLoopLambdaHandler {
             let s3Object = Rekognition.S3Object(bucket: record.s3.bucket.name, name: safeKey)
             let image = Rekognition.Image(s3Object: s3Object)
             let detectLabelsRequest = Rekognition.DetectLabelsRequest(image: image, maxLabels: 10, minConfidence: minConfidence)
+            context.logger.info("Python version: \(Python.version)")
+
 
             return getImage(of: record.s3.bucket.name, with: safeKey, context: context)
                 .flatMap { output in
