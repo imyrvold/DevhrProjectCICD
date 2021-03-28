@@ -11,7 +11,7 @@ import SotoRekognition
 import SotoDynamoDB
 import SotoS3
 import Foundation
-import PythonKit
+import SwiftGD
 
 struct RekHandler: EventLoopLambdaHandler {
     typealias In = AWSLambdaEvents.S3.Event
@@ -23,7 +23,6 @@ struct RekHandler: EventLoopLambdaHandler {
     
     init(context: Lambda.InitializationContext) {
         self.awsClient = AWSClient(httpClientProvider: .createNewWithEventLoopGroup(context.eventLoop))
-        PythonLibrary.useVersion(3)
     }
     
     func shutdown(context: Lambda.ShutdownContext) -> EventLoopFuture<Void> {
@@ -51,7 +50,7 @@ struct RekHandler: EventLoopLambdaHandler {
             let s3Object = Rekognition.S3Object(bucket: record.s3.bucket.name, name: safeKey)
             let image = Rekognition.Image(s3Object: s3Object)
             let detectLabelsRequest = Rekognition.DetectLabelsRequest(image: image, maxLabels: 10, minConfidence: minConfidence)
-            context.logger.info("Python version: \(Python.version)")
+//            context.logger.info("Python version: \(Python.version)")
 
 
             return getImage(of: record.s3.bucket.name, with: safeKey, context: context)
@@ -83,7 +82,8 @@ struct RekHandler: EventLoopLambdaHandler {
     }
     
     func createThumbnail(for url: URL) {
-        let sys = Python.import("sys")
+//        let image = Image(url: location)
+//        let sys = Python.import("sys")
 //        let size = CGSize(width: 60, height: 90)
 //        let options = [ kQLThumbnailOptionIconModeKey: false ]
 //        let scale: CGFloat = 72
