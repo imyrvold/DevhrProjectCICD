@@ -7,6 +7,7 @@ import * as iam from '@aws-cdk/aws-iam'
 import * as event_sources from '@aws-cdk/aws-lambda-event-sources'
 
 const imageBucketName = 'cdk-rekn-imagebucket'
+const resizedBucketName = imageBucketName + "-resized"
 
 export class DevhrProjectStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
@@ -21,6 +22,14 @@ export class DevhrProjectStack extends cdk.Stack {
       removalPolicy: cdk.RemovalPolicy.DESTROY
     })
     new cdk.CfnOutput(this, 'imageBucket', { value: imageBucket.bucketName })
+
+    // =================================================================================
+    // Thumbnail Bucket
+    // =================================================================================
+    const resizedBucket = new s3.Bucket(this, resizedBucketName, {
+      removalPolicy: cdk.RemovalPolicy.DESTROY
+    })
+    new cdk.CfnOutput(this, 'resizedBucket', { value: resizedBucket.bucketName })
 
     // =================================================================================
     // Amazon DynamoDB table for storing image labels
@@ -40,13 +49,15 @@ export class DevhrProjectStack extends cdk.Stack {
       code: lambda.DockerImageCode.fromImageAsset(dockerfile),
       environment: {
         'TABLE': table.tableName,
-        'BUCKET': imageBucket.bucketName
+        'BUCKET': imageBucket.bucketName,
+        'THUMBBUCKET': resizedBucket.bucketName
       },
       timeout: Duration.seconds(5)
     });
     rekFn.addEventSource(new event_sources.S3EventSource(imageBucket, { events: [s3.EventType.OBJECT_CREATED] }))
     imageBucket.grantRead(rekFn)
     table.grantWriteData(rekFn)
+    resizedBucket.grantPut(rekFn)
 
     rekFn.addToRolePolicy(new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,
