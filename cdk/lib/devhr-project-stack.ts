@@ -18,7 +18,6 @@ export class DevhrProjectStack extends cdk.Stack {
     // Image Bucket
     // =================================================================================
     const imageBucket = new s3.Bucket(this, imageBucketName, {
-      bucketName: 'photobucket',
       removalPolicy: cdk.RemovalPolicy.DESTROY
     })
     new cdk.CfnOutput(this, 'imageBucket', { value: imageBucket.bucketName })
