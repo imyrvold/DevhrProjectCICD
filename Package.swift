@@ -20,7 +20,8 @@ let package = Package(
                 .product(name: "AWSLambdaEvents", package: "swift-aws-lambda-runtime"),
                 .product(name: "SotoS3", package: "soto"),
                 .product(name: "SotoRekognition", package: "soto"),
-                .product(name: "SotoDynamoDB", package: "soto")
+                .product(name: "SotoDynamoDB", package: "soto"),
+                "PythonKit"
             ]),
         .testTarget(
             name: "RecognitionFunctionTests",
