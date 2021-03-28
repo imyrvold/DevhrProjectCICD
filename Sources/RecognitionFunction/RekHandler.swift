@@ -23,6 +23,7 @@ struct RekHandler: EventLoopLambdaHandler {
     
     init(context: Lambda.InitializationContext) {
         self.awsClient = AWSClient(httpClientProvider: .createNewWithEventLoopGroup(context.eventLoop))
+        PythonLibrary.useVersion(3)
     }
     
     func shutdown(context: Lambda.ShutdownContext) -> EventLoopFuture<Void> {
