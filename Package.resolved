@@ -11,6 +11,15 @@
         }
       },
       {
+        "package": "CImageMagick",
+        "repositoryURL": "https://github.com/imyrvold/CImageMagick.git",
+        "state": {
+          "branch": null,
+          "revision": "8eac02ecad99339d86c71b03eac2628ec47a32a6",
+          "version": "1.0.0"
+        }
+      },
+      {
         "package": "soto",
         "repositoryURL": "https://github.com/soto-project/soto.git",
         "state": {
@@ -98,15 +107,6 @@
           "branch": null,
           "revision": "1d28d48e071727f4558a8a4bb1894472abc47a58",
           "version": "1.9.2"
-        }
-      },
-      {
-        "package": "SwiftGD",
-        "repositoryURL": "https://github.com/twostraws/SwiftGD.git",
-        "state": {
-          "branch": null,
-          "revision": "1960998971b453101e740f25bc6d9fb01e0ba225",
-          "version": "2.5.0"
         }
       }
     ]

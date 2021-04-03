@@ -11,7 +11,7 @@ import SotoRekognition
 import SotoDynamoDB
 import SotoS3
 import Foundation
-import SwiftGD
+import CImageMagick
 
 struct RekHandler: EventLoopLambdaHandler {
     typealias In = AWSLambdaEvents.S3.Event
@@ -82,15 +82,19 @@ struct RekHandler: EventLoopLambdaHandler {
     }
     
     func createThumbnail(for url: URL) {
-//        let image = Image(url: location)
+        let image = Image(url: location)
+        MagickWandGenesis()
+        let wand = NewMagickWand()
+        
+        DestroyMagickWand(wand)
+        MagickWandTerminus()
+        
 //        let sys = Python.import("sys")
 //        let size = CGSize(width: 60, height: 90)
 //        let options = [ kQLThumbnailOptionIconModeKey: false ]
 //        let scale: CGFloat = 72
 //
 //        let ref = QLThumbnailCreate(kCFAllocatorDefault, url as NSURL, size, options as CFDictionary)
-        
-        
     }
     
     func getImage( of bucket: String, with thekey: String, context: Lambda.Context) -> EventLoopFuture<SotoS3.S3.GetObjectOutput> {
