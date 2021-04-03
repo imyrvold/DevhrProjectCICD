@@ -82,7 +82,7 @@ struct RekHandler: EventLoopLambdaHandler {
     }
     
     func createThumbnail(for url: URL) {
-        let image = Image(url: location)
+//        let image = Image(url: location)
         MagickWandGenesis()
         let wand = NewMagickWand()
         
@@ -90,7 +90,7 @@ struct RekHandler: EventLoopLambdaHandler {
         MagickWandTerminus()
         
 //        let sys = Python.import("sys")
-//        let size = CGSize(width: 60, height: 90)
+        let size = CGSize(width: 60, height: 90)
 //        let options = [ kQLThumbnailOptionIconModeKey: false ]
 //        let scale: CGFloat = 72
 //
