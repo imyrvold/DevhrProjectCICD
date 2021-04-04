@@ -64,7 +64,7 @@ struct RekHandler: EventLoopLambdaHandler {
                     context.logger.info("handle 3")
                     let body = output.body
                     guard let data = body?.asData() else { return context.eventLoop.makeSucceededVoidFuture() }
-                    createThumbnail(for: data)
+                    createThumbnail(for: data, context: context)
                     
                     return rekognitionClient.detectLabels(detectLabelsRequest)
                         .flatMap { detectLabelsResponse -> EventLoopFuture<Void> in
@@ -91,7 +91,7 @@ struct RekHandler: EventLoopLambdaHandler {
         return EventLoopFuture<Out>.andAllSucceed(futureRecordsResult, on: context.eventLoop)
     }
     
-    func createThumbnail(for data: Data) {
+    func createThumbnail(for data: Data, context: Lambda.Context) {
 //        let image = Image(url: location)
         context.logger.info("createThumbnail 1")
         MagickWandGenesis()
