@@ -11,7 +11,11 @@ import SotoRekognition
 import SotoDynamoDB
 import SotoS3
 import Foundation
+#if os(macOS)
+import CImageMagickMac
+#else
 import CImageMagick
+#endif
 
 struct RekHandler: EventLoopLambdaHandler {
     typealias In = AWSLambdaEvents.S3.Event
@@ -56,6 +60,8 @@ struct RekHandler: EventLoopLambdaHandler {
             return getImage(of: record.s3.bucket.name, with: safeKey, context: context)
                 .flatMap { output in
                     let body = output.body
+                    guard let data = body?.asData() else { return context.eventLoop.makeSucceededVoidFuture() }
+                    createThumbnail(for: data)
                     
                     return rekognitionClient.detectLabels(detectLabelsRequest)
                         .flatMap { detectLabelsResponse -> EventLoopFuture<Void> in
@@ -81,10 +87,12 @@ struct RekHandler: EventLoopLambdaHandler {
         return EventLoopFuture<Out>.andAllSucceed(futureRecordsResult, on: context.eventLoop)
     }
     
-    func createThumbnail(for url: URL) {
+    func createThumbnail(for data: Data) {
 //        let image = Image(url: location)
         MagickWandGenesis()
         let wand = NewMagickWand()
+        
+//        MagickResizeImage(wand, 100, 100, LanczosFilter,1.0)
         
         DestroyMagickWand(wand)
         MagickWandTerminus()
