@@ -7,5 +7,7 @@ COPY . .
 RUN swift build --product RecognitionFunction -c release -Xswiftc -static-stdlib
 
 FROM public.ecr.aws/lambda/provided:al2
+RUN yum makecache fast
+RUN yum -y install ImageMagick ImageMagick-devel
 COPY --from=build /src/.build/release/RecognitionFunction /main
 ENTRYPOINT [ "/main" ]
