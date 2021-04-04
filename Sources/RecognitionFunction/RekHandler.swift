@@ -91,7 +91,6 @@ struct RekHandler: EventLoopLambdaHandler {
     }
     
     func createThumbnail(for data: Data, context: Lambda.Context) {
-        context.logger.info("createThumbnail data:", data)
 //        let image = Image(url: location)
         MagickWandGenesis()
         let wand = NewMagickWand()
