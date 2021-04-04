@@ -92,7 +92,7 @@ struct RekHandler: EventLoopLambdaHandler {
         MagickWandGenesis()
         let wand = NewMagickWand()
         
-//        MagickResizeImage(wand, 100, 100, LanczosFilter,1.0)
+        MagickResizeImage(wand, 100, 100, LanczosFilter,1.0)
         
         DestroyMagickWand(wand)
         MagickWandTerminus()
