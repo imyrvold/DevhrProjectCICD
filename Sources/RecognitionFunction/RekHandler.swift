@@ -94,7 +94,7 @@ struct RekHandler: EventLoopLambdaHandler {
         let fileManager = FileManager.default
         context.logger.info("createThumbnail 1")
         let path = "/tmp/image.jpeg"
-        let bool = fileManager?.createFile(atPath: path, contents: data, attributes: nil)
+        let bool = fileManager.createFile(atPath: path, contents: data, attributes: nil)
         context.logger.info("createThumbnail 2")
 
         MagickWandGenesis()
