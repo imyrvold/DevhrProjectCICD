@@ -91,23 +91,39 @@ struct RekHandler: EventLoopLambdaHandler {
     }
     
     func createThumbnail(for data: Data, context: Lambda.Context) {
-//        let image = Image(url: location)
+        let fileManager = FileManager.default
+        context.logger.info("createThumbnail 1")
+        let path = "/tmp/image.jpeg"
+        let bool = fileManager?.createFile(atPath: path, contents: data, attributes: nil)
+        context.logger.info("createThumbnail 2")
+
         MagickWandGenesis()
         let wand = NewMagickWand()
+
+        context.logger.info("createThumbnail 3")
+        let status: MagickBooleanType = MagickReadImage(wand, path)
+        if status == MagickFalse {
+            context.logger.info("Error reading the image")
+        } else {
+            context.logger.info("createThumbnail 4")
+            let width = MagickGetImageWidth(wand)
+            let height = MagickGetImageHeight(wand)
+            let newHeight = 100
+            let newWidth = 100 * width / height
+            context.logger.info("createThumbnail 5")
+            MagickResizeImage(wand, newWidth, newHeight, LanczosFilter,1.0)
+            MagickWriteImage(wand, "/tmp/thumbnail.jpeg")
+            context.logger.info("createThumbnail 6")
+        }
+
+//        let image = Image(url: location)
+            
         
-        MagickResizeImage(wand, 100, 100, LanczosFilter,1.0)
-        
-        
+        context.logger.info("createThumbnail 7")
         DestroyMagickWand(wand)
         MagickWandTerminus()
         
-//        let sys = Python.import("sys")
-        let size = CGSize(width: 60, height: 90)
-//        let options = [ kQLThumbnailOptionIconModeKey: false ]
-//        let scale: CGFloat = 72
-//
-//        let ref = QLThumbnailCreate(kCFAllocatorDefault, url as NSURL, size, options as CFDictionary)
-        context.logger.info("createThumbnail 1")
+        context.logger.info("createThumbnail 8")
     }
     
     func getImage( of bucket: String, with thekey: String, context: Lambda.Context) -> EventLoopFuture<SotoS3.S3.GetObjectOutput> {
