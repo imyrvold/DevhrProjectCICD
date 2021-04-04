@@ -46,9 +46,11 @@ struct RekHandler: EventLoopLambdaHandler {
         let db = DynamoDB(client: awsClient, region: .euwest1)
         let rekognitionClient = Rekognition(client: awsClient)
         let thumbBucket = Lambda.env("THUMBBUCKET")
-        
+        context.logger.info("handle 1")
+
         let futureRecords: [AWSLambdaEvents.S3.Event.Record] = event.records
 
+        context.logger.info("handle 2")
         let futureRecordsResult = futureRecords.map { record -> EventLoopFuture<Out> in
             let safeKey = record.s3.object.key.replacingOccurrences(of: "%3A", with: ":")
             let s3Object = Rekognition.S3Object(bucket: record.s3.bucket.name, name: safeKey)
@@ -59,12 +61,14 @@ struct RekHandler: EventLoopLambdaHandler {
 
             return getImage(of: record.s3.bucket.name, with: safeKey, context: context)
                 .flatMap { output in
+                    context.logger.info("handle 3")
                     let body = output.body
                     guard let data = body?.asData() else { return context.eventLoop.makeSucceededVoidFuture() }
                     createThumbnail(for: data)
                     
                     return rekognitionClient.detectLabels(detectLabelsRequest)
                         .flatMap { detectLabelsResponse -> EventLoopFuture<Void> in
+                            context.logger.info("handle 4")
                             guard let rekLabels = detectLabelsResponse.labels,
                                   let imageLabelsTable = Lambda.env("TABLE") else {
                                 return context.eventLoop.makeSucceededFuture(())
@@ -89,20 +93,25 @@ struct RekHandler: EventLoopLambdaHandler {
     
     func createThumbnail(for data: Data) {
 //        let image = Image(url: location)
+        context.logger.info("createThumbnail 1")
         MagickWandGenesis()
         let wand = NewMagickWand()
         
+        context.logger.info("createThumbnail 2")
         MagickResizeImage(wand, 100, 100, LanczosFilter,1.0)
         
+        context.logger.info("createThumbnail 3")
         DestroyMagickWand(wand)
         MagickWandTerminus()
         
+        context.logger.info("createThumbnail 4")
 //        let sys = Python.import("sys")
         let size = CGSize(width: 60, height: 90)
 //        let options = [ kQLThumbnailOptionIconModeKey: false ]
 //        let scale: CGFloat = 72
 //
 //        let ref = QLThumbnailCreate(kCFAllocatorDefault, url as NSURL, size, options as CFDictionary)
+        context.logger.info("createThumbnail 5")
     }
     
     func getImage( of bucket: String, with thekey: String, context: Lambda.Context) -> EventLoopFuture<SotoS3.S3.GetObjectOutput> {
