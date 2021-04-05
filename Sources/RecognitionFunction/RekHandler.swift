@@ -128,5 +128,17 @@ struct RekHandler: EventLoopLambdaHandler {
         return s3.getObject(getObjectRequest)
     }
 
+    func saveThumbnail(in bucket: String, with thekey: String, for data: Data) -> EventLoopFuture<SotoS3.S3.PutObjectOutput> {
+        let s3 = S3(client: awsClient)
+        let putRequest = S3.PutObjectRequest(
+            acl: .publicRead,
+            body: data,
+            bucket: bucket,
+            contentLength: Int64(contents.utf8.count),
+            key: theKey
+        )
+        
+        return s3.putObject(putRequest)
+    }
             
 }
