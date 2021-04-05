@@ -45,7 +45,7 @@ struct RekHandler: EventLoopLambdaHandler {
     func handle(context: Lambda.Context, event: In) -> EventLoopFuture<Out> {
         let db = DynamoDB(client: awsClient, region: .euwest1)
         let rekognitionClient = Rekognition(client: awsClient)
-        let thumbBucket = Lambda.env("THUMBBUCKET")
+        guard let thumbBucket = Lambda.env("THUMBBUCKET") else { return context.eventLoop.makeSucceededVoidFuture() }
 
         let futureRecords: [AWSLambdaEvents.S3.Event.Record] = event.records
 
@@ -79,7 +79,8 @@ struct RekHandler: EventLoopLambdaHandler {
                             // Put item into table
                             return db.putItem(putRequest)
                                 .flatMap { result in
-                                    return context.eventLoop.makeSucceededFuture(())
+                                    
+                                    return saveThumbnail(in: thumbBucket, with: safeKey, for: thumbnail).map { _ in }
                                 }
                         }
                 }
@@ -134,7 +135,6 @@ struct RekHandler: EventLoopLambdaHandler {
             acl: .publicRead,
             body: data,
             bucket: bucket,
-            contentLength: Int64(contents.utf8.count),
             key: theKey
         )
         
