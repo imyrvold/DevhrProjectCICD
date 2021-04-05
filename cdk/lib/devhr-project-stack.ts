@@ -58,11 +58,33 @@ export class DevhrProjectStack extends cdk.Stack {
     imageBucket.grantRead(rekFn)
     table.grantWriteData(rekFn)
     resizedBucket.grantPut(rekFn)
+    resizedBucket.grantWrite(rekFn)
 
     rekFn.addToRolePolicy(new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,
       actions: ['rekognition:DetectLabels'],
       resources: ['*']
     }))
+
+    // =====================================================================================
+    // Lambda for Synchronous Front End
+    // =====================================================================================
+  ​
+  // const serviceFn = new lambda.Function(this, 'serviceFunction', {
+  //   code: lambda.Code.fromAsset('servicelambda'),
+  //   runtime: lambda.Runtime.PYTHON_3_7,
+  //   handler: 'index.handler',
+  //   environment: {
+  //     "TABLE": table.tableName,
+  //     "BUCKET": imageBucket.bucketName,
+  //     "RESIZEDBUCKET": resizedBucket.bucketName
+  //   },
+  // });
+  // ​
+  // imageBucket.grantWrite(serviceFn);
+  // resizedBucket.grantWrite(serviceFn);
+  // table.grantReadWriteData(serviceFn);
+
+
   }
 }
