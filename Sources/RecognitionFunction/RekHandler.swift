@@ -110,7 +110,7 @@ struct RekHandler: EventLoopLambdaHandler {
             let height = MagickGetImageHeight(wand)
             let newHeight = 100
             let newWidth = 100 * width / height
-            context.logger.info("createThumbnail 5")
+            context.logger.info("createThumbnail 5 width:", width, " height:", height)
             MagickResizeImage(wand, newWidth, newHeight, LanczosFilter,1.0)
             context.logger.info("createThumbnail 6")
             MagickWriteImage(wand, "/tmp/thumbnail.jpeg")
@@ -120,11 +120,11 @@ struct RekHandler: EventLoopLambdaHandler {
 //        let image = Image(url: location)
             
         
-        context.logger.info("createThumbnail 7")
+        context.logger.info("createThumbnail 8")
         DestroyMagickWand(wand)
         MagickWandTerminus()
         
-        context.logger.info("createThumbnail 8")
+        context.logger.info("createThumbnail 9")
     }
     
     func getImage( of bucket: String, with thekey: String, context: Lambda.Context) -> EventLoopFuture<SotoS3.S3.GetObjectOutput> {
