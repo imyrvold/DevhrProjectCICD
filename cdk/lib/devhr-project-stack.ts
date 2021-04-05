@@ -52,7 +52,7 @@ export class DevhrProjectStack extends cdk.Stack {
         'BUCKET': imageBucket.bucketName,
         'THUMBBUCKET': resizedBucket.bucketName
       },
-      timeout: Duration.seconds(15)
+      timeout: Duration.seconds(30)
     });
     rekFn.addEventSource(new event_sources.S3EventSource(imageBucket, { events: [s3.EventType.OBJECT_CREATED] }))
     imageBucket.grantRead(rekFn)
