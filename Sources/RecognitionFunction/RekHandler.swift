@@ -54,17 +54,15 @@ struct RekHandler: EventLoopLambdaHandler {
             let s3Object = Rekognition.S3Object(bucket: record.s3.bucket.name, name: safeKey)
             let image = Rekognition.Image(s3Object: s3Object)
             let detectLabelsRequest = Rekognition.DetectLabelsRequest(image: image, maxLabels: 10, minConfidence: minConfidence)
-//            context.logger.info("Python version: \(Python.version)")
 
 
             return getImage(of: record.s3.bucket.name, with: safeKey, context: context)
                 .flatMap { output in
                     let body = output.body
-                    context.logger.info("handle 1")
                     guard let data = body?.asData() else { return context.eventLoop.makeSucceededVoidFuture() }
-                    context.logger.info("handle 2")
-                    createThumbnail(for: data, context: context)
-                    context.logger.info("handle 3")
+                    context.logger.info("handle 1")
+                    guard let thumbnail = createThumbnail(for: data, context: context) else { return context.eventLoop.makeSucceededVoidFuture() }
+                    context.logger.info("handle got thumbnail")
 
                     return rekognitionClient.detectLabels(detectLabelsRequest)
                         .flatMap { detectLabelsResponse -> EventLoopFuture<Void> in
@@ -90,41 +88,32 @@ struct RekHandler: EventLoopLambdaHandler {
         return EventLoopFuture<Out>.andAllSucceed(futureRecordsResult, on: context.eventLoop)
     }
     
-    func createThumbnail(for data: Data, context: Lambda.Context) {
+    func createThumbnail(for data: Data, context: Lambda.Context) -> Data? {
         let fileManager = FileManager.default
-        context.logger.info("createThumbnail 1")
         let path = "/tmp/image.jpeg"
+        let thumbnailpath = "/tmp/thumbnail.jpeg"
         let bool = fileManager.createFile(atPath: path, contents: data, attributes: nil)
-        context.logger.info("createThumbnail 2")
 
         MagickWandGenesis()
         let wand = NewMagickWand()
 
-        context.logger.info("createThumbnail 3")
         let status: MagickBooleanType = MagickReadImage(wand, path)
         if status == MagickFalse {
             context.logger.info("Error reading the image")
         } else {
-            context.logger.info("createThumbnail 4")
             let width = MagickGetImageWidth(wand)
             let height = MagickGetImageHeight(wand)
             let newHeight = 100
             let newWidth = 100 * width / height
-            context.logger.info("createThumbnail 5 width: \(width) height: \(height)")
+            context.logger.info("createThumbnail width: \(width) height: \(height)")
             MagickResizeImage(wand, newWidth, newHeight, LanczosFilter,1.0)
-            context.logger.info("createThumbnail 6 newWidth: \(newWidth) newHeight: \(newHeight)")
-            MagickWriteImage(wand, "/tmp/thumbnail.jpeg")
-            context.logger.info("createThumbnail 7")
+            context.logger.info("createThumbnail newWidth: \(newWidth) newHeight: \(newHeight)")
+            MagickWriteImage(wand, thumbnailpath)
         }
-
-//        let image = Image(url: location)
-            
-        
-        context.logger.info("createThumbnail 8")
         DestroyMagickWand(wand)
         MagickWandTerminus()
         
-        context.logger.info("createThumbnail 9")
+        return fileManager.contents(atPath: thumbnailpath)
     }
     
     func getImage( of bucket: String, with thekey: String, context: Lambda.Context) -> EventLoopFuture<SotoS3.S3.GetObjectOutput> {
