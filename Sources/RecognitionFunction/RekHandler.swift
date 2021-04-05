@@ -112,7 +112,7 @@ struct RekHandler: EventLoopLambdaHandler {
             let newWidth = 100 * width / height
             context.logger.info("createThumbnail 5 width: \(width) height: \(height)")
             MagickResizeImage(wand, newWidth, newHeight, LanczosFilter,1.0)
-            context.logger.info("createThumbnail 6")
+            context.logger.info("createThumbnail 6 newWidth: \(newWidth) newHeight: \(newHeight)")
             MagickWriteImage(wand, "/tmp/thumbnail.jpeg")
             context.logger.info("createThumbnail 7")
         }
