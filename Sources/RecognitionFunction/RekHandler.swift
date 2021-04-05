@@ -135,7 +135,7 @@ struct RekHandler: EventLoopLambdaHandler {
             acl: .publicRead,
             body: data,
             bucket: bucket,
-            key: theKey
+            key: thekey
         )
         
         return s3.putObject(putRequest)
