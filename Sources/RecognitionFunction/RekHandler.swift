@@ -79,7 +79,8 @@ struct RekHandler: EventLoopLambdaHandler {
                             // Put item into table
                             return db.putItem(putRequest)
                                 .flatMap { result in
-                                    
+                                    context.logger.info("handle newHeight: \(thumbBucket) safeKey: \(safeKey)")
+
                                     return saveThumbnail(in: thumbBucket, with: safeKey, for: thumbnail).map { _ in }
                                 }
                         }
