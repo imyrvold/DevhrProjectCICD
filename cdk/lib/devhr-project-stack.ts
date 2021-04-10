@@ -57,6 +57,7 @@ export class DevhrProjectStack extends cdk.Stack {
     rekFn.addEventSource(new event_sources.S3EventSource(imageBucket, { events: [s3.EventType.OBJECT_CREATED] }))
     imageBucket.grantRead(rekFn)
     resizedBucket.grantPut(rekFn)
+    resizedBucket.grantPutAcl(rekFn)
     table.grantWriteData(rekFn)
 
     rekFn.addToRolePolicy(new iam.PolicyStatement({
