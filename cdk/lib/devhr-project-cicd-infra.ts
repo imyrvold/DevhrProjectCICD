@@ -22,7 +22,7 @@ export class DevhrProjectCicdInfraStack extends cdk.Stack {
                 actionName: 'DownloadSources',
                 owner: 'imyrvold',
                 repo: 'DevhrProjectCICD',
-                branch: 'part2',
+                branch: 'part2-1',
                     oauthToken: cdk.SecretValue.secretsManager('github-token'),
                     output: sourceArtifact
             }),
