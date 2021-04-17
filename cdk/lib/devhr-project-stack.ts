@@ -14,6 +14,7 @@ export class DevhrProjectStack extends cdk.Stack {
     super(scope, id, props)
 
     const dockerfile = '../lambda/rekfunction/';
+    const serviceDockerfile = '../lambda/servicefunction/';
 
     // =================================================================================
     // Image Bucket
@@ -69,7 +70,17 @@ export class DevhrProjectStack extends cdk.Stack {
     // =====================================================================================
     // Lambda for Synchronous Front End
     // =====================================================================================
-  ​
+  ​  const serviceFn = new lambda.DockerImageFunction(this, 'serviceFunction', {
+      functionName: 'serviceFunction',
+      code: lambda.DockerImageCode.fromImageAsset(serviceDockerfile),
+      environment: {
+        'TABLE': table.tableName,
+        'BUCKET': imageBucket.bucketName,
+        'THUMBBUCKET': resizedBucket.bucketName
+      },
+      timeout: Duration.seconds(30)
+    });
+
   // const serviceFn = new lambda.Function(this, 'serviceFunction', {
   //   code: lambda.Code.fromAsset('servicelambda'),
   //   runtime: lambda.Runtime.PYTHON_3_7,
@@ -80,10 +91,10 @@ export class DevhrProjectStack extends cdk.Stack {
   //     "RESIZEDBUCKET": resizedBucket.bucketName
   //   },
   // });
-  // ​
-  // imageBucket.grantWrite(serviceFn);
-  // resizedBucket.grantWrite(serviceFn);
-  // table.grantReadWriteData(serviceFn);
+  ​
+    imageBucket.grantWrite(serviceFn);
+    resizedBucket.grantWrite(serviceFn);
+    table.grantReadWriteData(serviceFn);
 
 
   }
