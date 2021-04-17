@@ -36,19 +36,27 @@ struct ServiceHandler: EventLoopLambdaHandler {
     let awsClient: AWSClient
 
     init(context: Lambda.InitializationContext) {
+        context.logger.info("init 1")
         self.awsClient = AWSClient(httpClientProvider: .createNewWithEventLoopGroup(context.eventLoop))
+        context.logger.info("init 2")
     }
 
     func shutdown(context: Lambda.ShutdownContext) -> EventLoopFuture<Void> {
+        context.logger.info("shutdown 1")
         let promise = context.eventLoop.makePromise(of: Void.self)
+        context.logger.info("shutdown 2")
         awsClient.shutdown { error in
+            context.logger.info("shutdown 3")
             if let error = error {
+                context.logger.info("shutdown 4")
                 promise.fail(error)
             } else {
+                context.logger.info("shutdown 5")
                 promise.succeed(())
             }
         }
-        
+        context.logger.info("shutdown 6")
+
         return context.eventLoop.makeSucceededFuture(())
     }
     
