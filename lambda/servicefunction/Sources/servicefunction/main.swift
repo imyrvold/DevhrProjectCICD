@@ -17,18 +17,8 @@ struct MyHandler {
     
 }
 
-Lambda.run { (context: Lambda.Context, event: APIGateway.Request, callback: @escaping (Result<APIGateway.Response, Error>) -> Void) in
-    context.logger.info("Lambda.run 1")
-    guard
-        let bodyData = event.body?.data(using: .utf8),
-        let json = try? JSONSerialization.jsonObject(with: bodyData, options: []) as? [String: Any]
-    else {
-        context.logger.info("Lambda.run 2")
-        callback(.success(APIGateway.Response(statusCode: .badRequest)))
-        context.logger.info("Lambda.run 3")
-        return
-    }
-    context.logger.info("Lambda.run 4")
+Lambda.run { (context: Lambda.Context, input: Input, callback: @escaping (Result<APIGateway.Response, Error>) -> Void) in
+    context.logger.info("Lambda.run input: \(input)")
 
     callback(.success(APIGateway.Response(statusCode: .ok, body: "fint")))
 }
