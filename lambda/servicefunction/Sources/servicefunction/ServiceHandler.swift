@@ -53,10 +53,12 @@ struct ServiceHandler: EventLoopLambdaHandler {
     }
     
     func handle(context: Lambda.Context, event: APIGateway.Request) -> EventLoopFuture<Out> {
+        context.logger.info("handle 1")
         guard let input: Input = try? event.bodyObject() else {
             return context.eventLoop.makeSucceededFuture(APIGateway.Response(with: APIError.requestError, statusCode: .badRequest))
         }
-        
+        context.logger.info("handle 2")
+
         switch input.action {
         case .getLabels:
             return getLabels(with: input.key, context: context)
