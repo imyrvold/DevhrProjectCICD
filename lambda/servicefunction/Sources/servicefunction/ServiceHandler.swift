@@ -105,17 +105,21 @@ struct ServiceHandler: EventLoopLambdaHandler {
     }
     
     func getLabels(with key: String, context: Lambda.Context) -> EventLoopFuture<Result<ImageLabel, APIError>> {
+        context.logger.info("getLabels 1")
         guard let imageLabelsTable = Lambda.env("TABLE") else {
             return context.eventLoop.makeSucceededFuture(Result.failure(APIError.getLabelsError))
         }
+        context.logger.info("getLabels imageLabelsTable:", imageLabelsTable)
         let db = DynamoDB(client: awsClient, region: .euwest1)
-        let input = DynamoDB.GetItemInput(key: ["image": .s("image")], tableName: imageLabelsTable)
+        let input = DynamoDB.GetItemInput(key: ["image": .s(key)], tableName: imageLabelsTable)
         
         return db.getItem(input, type: ImageLabel.self)
             .flatMap { output in
+                context.logger.info("getLabels output: \(output)")
                 guard let imageLabel = output.item else {
                     return context.eventLoop.makeSucceededFuture(Result.failure(APIError.getLabelsError))
                 }
+                context.logger.info("getLabels imageLabel: \(imageLabel)")
                 return context.eventLoop.makeSucceededFuture(Result.success(imageLabel))
             }
     }
@@ -126,7 +130,7 @@ struct ServiceHandler: EventLoopLambdaHandler {
         }
         
         let db = DynamoDB(client: awsClient, region: .euwest1)
-        let input = DynamoDB.DeleteItemInput(key: ["image": .s("image")], tableName: imageLabelsTable)
+        let input = DynamoDB.DeleteItemInput(key: ["image": .s(key)], tableName: imageLabelsTable)
         
         return db.deleteItem(input)
             .flatMap { _ in
