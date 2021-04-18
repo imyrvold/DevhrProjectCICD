@@ -14,19 +14,19 @@ protocol APIRequest {
     var isBase64Encoded: Bool { get }
 }
 
-Lambda.run { (context: Lambda.Context, input: Input, callback: @escaping (Result<APIGateway.Response, Error>) -> Void) in
+/*Lambda.run { (context: Lambda.Context, input: Input, callback: @escaping (Result<APIGateway.Response, Error>) -> Void) in
     context.logger.info("Lambda.run input: \(input)")
     
 //    let awsClient = AWSClient(httpClientProvider: .createNewWithEventLoopGroup(context.eventLoop))
     let handler = ServiceHandler(context: context)
-    handler.handle(context: context, input: input)
+    _ = handler.handle(context: context, input: input)
         .map { result in
-            context.logger.info("Lambda.run result: \(result)")
-            callback(.success(APIGateway.Response(statusCode: .ok, body: "fint")))
+            context.logger.info("Lambda.run body: \(result.body), statusCode: \(result.statusCode)")
+            callback(.success(APIGateway.Response(statusCode: result.statusCode, body: result.body)))
         }
         
 
 
-}
+}*/
 
-//Lambda.run { ServiceHandler(context: $0) }
+Lambda.run { ServiceHandler(context: $0) }

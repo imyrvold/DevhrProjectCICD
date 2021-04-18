@@ -29,8 +29,8 @@ struct DeleteOutput: Codable {
     let result: String
 }
 
-/*struct ServiceHandler: EventLoopLambdaHandler {
-    typealias In = APIGateway.Request
+struct ServiceHandler: EventLoopLambdaHandler {
+    typealias In = Input
     typealias Out = APIGateway.Response
     
     let awsClient: AWSClient
@@ -60,11 +60,12 @@ struct DeleteOutput: Codable {
         return context.eventLoop.makeSucceededFuture(())
     }
     
-    func handle(context: Lambda.Context, event: APIGateway.Request) -> EventLoopFuture<Out> {
+    func handle(context: Lambda.Context, event: In) -> EventLoopFuture<Out> {
         context.logger.info("handle 1")
-        guard let input: Input = try? event.bodyObject() else {
-            return context.eventLoop.makeSucceededFuture(APIGateway.Response(with: APIError.requestError, statusCode: .badRequest))
-        }
+//        guard let input: Input = try? event.bodyObject() else {
+//            return context.eventLoop.makeSucceededFuture(APIGateway.Response(with: APIError.requestError, statusCode: .badRequest))
+//        }
+        let input = event
         context.logger.info("handle 2")
 
         switch input.action {
@@ -132,9 +133,9 @@ struct DeleteOutput: Codable {
                 return context.eventLoop.makeSucceededFuture(Result.success("Delete request successfully processed"))
             }
     }
-}*/
+}
 
-struct ServiceHandler {
+/*struct ServiceHandler {
     let awsClient: AWSClient
 
     init(context: Lambda.Context) {
@@ -237,3 +238,4 @@ struct ServiceHandler {
             }
     }
 }
+*/
