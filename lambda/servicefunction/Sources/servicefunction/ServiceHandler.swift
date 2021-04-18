@@ -121,7 +121,7 @@ struct ServiceHandler: EventLoopLambdaHandler {
         let deleteThumbRequest = S3.DeleteObjectRequest(bucket: thumbBucketName, key: key)
 
         context.logger.info("deleteImage 1")
-        let futureResponse = db.deleteItem(input)
+        return db.deleteItem(input)
             .flatMap { _  -> EventLoopFuture<Result<String, APIError>> in
                 context.logger.info("deleteImage 2")
                 return s3.deleteObject(deleteObjectRequest)
@@ -131,20 +131,23 @@ struct ServiceHandler: EventLoopLambdaHandler {
             }
             .flatMap { _ -> EventLoopFuture<Result<String, APIError>> in
                 context.logger.info("deleteImage 3")
-                return context.eventLoop.makeSucceededFuture(Result<String, APIError>.success("deleted thumbnail \(key)"))
+                return s3.deleteObject(deleteThumbRequest)
+                    .flatMap { _ in
+                        return context.eventLoop.makeSucceededFuture(Result<String, APIError>.success("deleted bucket object \(key)"))
+                    }
             }
         
-        futureResponse.whenComplete { result in
-            context.logger.info("deleteImage 4")
-            switch result {
-            case .failure(let error):
-                context.logger.info("deleteImage error: \(error.localizedDescription)")
-            case .success(let deleteResult):
-                context.logger.info("deleteImage success: \(deleteResult)")
-            }
-        }
+//        futureResponse.whenComplete { result in
+//            context.logger.info("deleteImage 4")
+//            switch result {
+//            case .failure(let error):
+//                context.logger.info("deleteImage error: \(error.localizedDescription)")
+//            case .success(let deleteResult):
+//                context.logger.info("deleteImage success: \(deleteResult)")
+//            }
+//        }
         
-        context.logger.info("deleteImage 5")
-        return context.eventLoop.makeSucceededFuture(Result<String, APIError>.success("Yes, this compiled, but I have no idea if this was a success or not"))
+//        context.logger.info("deleteImage 5")
+//        return context.eventLoop.makeSucceededFuture(Result<String, APIError>.success("Yes, this compiled, but I have no idea if this was a success or not"))
     }
 }
