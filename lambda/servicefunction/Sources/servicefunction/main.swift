@@ -1,6 +1,7 @@
 import AWSLambdaRuntime
 import AWSLambdaEvents
 import Foundation
+import NIO
 
 protocol APIRequest {
     var path: String { get }
@@ -19,9 +20,13 @@ Lambda.run { (context: Lambda.Context, input: Input, callback: @escaping (Result
 //    let awsClient = AWSClient(httpClientProvider: .createNewWithEventLoopGroup(context.eventLoop))
     let handler = ServiceHandler(context: context)
     handler.handle(context: context, input: input)
+        .map { result in
+            context.logger.info("Lambda.run result: \(result)")
+            callback(.success(APIGateway.Response(statusCode: .ok, body: "fint")))
+        }
+        
 
 
-    callback(.success(APIGateway.Response(statusCode: .ok, body: "fint")))
 }
 
 //Lambda.run { ServiceHandler(context: $0) }
