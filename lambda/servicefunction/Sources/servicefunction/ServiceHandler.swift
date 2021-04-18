@@ -74,9 +74,9 @@ struct ServiceHandler: EventLoopLambdaHandler {
                 .flatMap { result in
                     switch result {
                     case .success(let imageLabel):
-                        let names = imageLabel.labels.map { $0.name }
+                        let labels = imageLabel.labels
                         
-                        let output = LabelsOutput(labels: names)
+                        let output = LabelsOutput(labels: labels)
                         let apigatewayOutput = APIGateway.Response(with: output, statusCode: .ok)
                         
                         return context.eventLoop.makeSucceededFuture(apigatewayOutput)
@@ -104,7 +104,7 @@ struct ServiceHandler: EventLoopLambdaHandler {
 
     }
     
-    func getLabels(with key: String, context: Lambda.Context) -> EventLoopFuture<Result<ImageLabel, APIError>> {
+    func getLabels(with key: String, context: Lambda.Context) -> EventLoopFuture<Result<RekEntry, APIError>> {
         context.logger.info("getLabels 1")
         guard let imageLabelsTable = Lambda.env("TABLE") else {
             return context.eventLoop.makeSucceededFuture(Result.failure(APIError.getLabelsError))
@@ -113,14 +113,14 @@ struct ServiceHandler: EventLoopLambdaHandler {
         let db = DynamoDB(client: awsClient, region: .euwest1)
         let input = DynamoDB.GetItemInput(key: ["image": .s(key)], tableName: imageLabelsTable)
         
-        return db.getItem(input, type: ImageLabel.self)
+        return db.getItem(input, type: RekEntry.self)
             .flatMap { output in
                 context.logger.info("getLabels output: \(output)")
-                guard let imageLabel = output.item else {
+                guard let rekEntry = output.item else {
                     return context.eventLoop.makeSucceededFuture(Result.failure(APIError.getLabelsError))
                 }
-                context.logger.info("getLabels imageLabel: \(imageLabel)")
-                return context.eventLoop.makeSucceededFuture(Result.success(imageLabel))
+                context.logger.info("getLabels rekEntry: \(rekEntry)")
+                return context.eventLoop.makeSucceededFuture(Result.success(rekEntry))
             }
     }
 
