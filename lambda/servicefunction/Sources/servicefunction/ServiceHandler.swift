@@ -229,7 +229,7 @@ struct ServiceHandler {
         }
         
         let db = DynamoDB(client: awsClient, region: .euwest1)
-        let input = DynamoDB.DeleteItemInput(key: ["image": .s("image")], tableName: imageLabelsTable)
+        let input = DynamoDB.DeleteItemInput(key: ["image": .s(key)], tableName: imageLabelsTable)
         
         return db.deleteItem(input)
             .flatMap { _ in
