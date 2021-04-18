@@ -109,7 +109,7 @@ struct ServiceHandler: EventLoopLambdaHandler {
         guard let imageLabelsTable = Lambda.env("TABLE") else {
             return context.eventLoop.makeSucceededFuture(Result.failure(APIError.getLabelsError))
         }
-        context.logger.info("getLabels imageLabelsTable:", imageLabelsTable)
+        context.logger.info("getLabels imageLabelsTable: \(imageLabelsTable)")
         let db = DynamoDB(client: awsClient, region: .euwest1)
         let input = DynamoDB.GetItemInput(key: ["image": .s(key)], tableName: imageLabelsTable)
         
