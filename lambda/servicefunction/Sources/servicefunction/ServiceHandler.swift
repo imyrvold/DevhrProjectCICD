@@ -27,50 +27,34 @@ struct ServiceHandler: EventLoopLambdaHandler {
     let awsClient: AWSClient
 
     init(context: Lambda.InitializationContext) {
-        context.logger.info("init 1")
         self.awsClient = AWSClient(httpClientProvider: .createNewWithEventLoopGroup(context.eventLoop))
-        context.logger.info("init 2")
     }
 
     func shutdown(context: Lambda.ShutdownContext) -> EventLoopFuture<Void> {
-        context.logger.info("shutdown 1")
         let promise = context.eventLoop.makePromise(of: Void.self)
-        context.logger.info("shutdown 2")
         awsClient.shutdown { error in
-            context.logger.info("shutdown 3")
             if let error = error {
-                context.logger.info("shutdown 4")
                 promise.fail(error)
             } else {
-                context.logger.info("shutdown 5")
                 promise.succeed(())
             }
         }
-        context.logger.info("shutdown 6")
 
         return promise.futureResult.flatMap {
-            context.logger.info("shutdown 7")
             let promise = context.eventLoop.makePromise(of: Void.self)
-            context.logger.info("shutdown 8")
             self.awsClient.shutdown { error in
-                context.logger.info("shutdown 9")
                 if let error = error {
-                    context.logger.info("shutdown 10")
                     promise.fail(error)
                 } else {
-                    context.logger.info("shutdown 11")
                     promise.succeed(())
                 }
             }
-            context.logger.info("shutdown 12")
             return promise.futureResult
         }
     }
     
     func handle(context: Lambda.Context, event: In) -> EventLoopFuture<Out> {
-        context.logger.info("handle 1")
         let input = event
-        context.logger.info("handle 2")
 
         switch input.action {
         case .getLabels:
@@ -125,16 +109,34 @@ struct ServiceHandler: EventLoopLambdaHandler {
     }
 
     func deleteImage(with key: String, context: Lambda.Context) -> EventLoopFuture<Result<String, APIError>> {
-        guard let imageLabelsTable = Lambda.env("TABLE") else {
+        guard let imageLabelsTable = Lambda.env("TABLE"), let bucketName = Lambda.env("BUCKET"), let thumbBucketName = Lambda.env("THUMBBUCKET") else {
             return context.eventLoop.makeSucceededFuture(Result.failure(APIError.deleteError))
         }
-        
+
+        let s3 = S3(client: awsClient)
         let db = DynamoDB(client: awsClient, region: .euwest1)
         let input = DynamoDB.DeleteItemInput(key: ["image": .s(key)], tableName: imageLabelsTable)
         
-        return db.deleteItem(input)
+        let deleteObjectRequest = S3.DeleteObjectRequest(bucket: bucketName, key: key)
+        let deleteThumbRequest = S3.DeleteObjectRequest(bucket: thumbBucketName, key: key)
+
+        let futureResponse = db.deleteItem(input)
             .flatMap { _ in
-                return context.eventLoop.makeSucceededFuture(Result.success("Delete request successfully processed"))
+                return s3.deleteObject(deleteObjectRequest)
             }
+            .flatMap { _ in
+                return s3.deleteObject(deleteThumbRequest)
+            }
+        
+        futureResponse.whenComplete { result in
+            switch result {
+            case .failure(let error):
+                context.logger.info("deleteImage error: \(error.localizedDescription)")
+            case .success(let deleteResult):
+                context.logger.info("deleteImage success: \(deleteResult)")
+            }
+        }
+        
+        return context.eventLoop.makeSucceededFuture(Result<String, APIError>.success("Yes, this compiled, but I have no idea if this was a success or not"))
     }
 }
