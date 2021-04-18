@@ -120,15 +120,22 @@ struct ServiceHandler: EventLoopLambdaHandler {
         let deleteObjectRequest = S3.DeleteObjectRequest(bucket: bucketName, key: key)
         let deleteThumbRequest = S3.DeleteObjectRequest(bucket: thumbBucketName, key: key)
 
+        context.logger.info("deleteImage 1")
         let futureResponse = db.deleteItem(input)
-            .flatMap { _ in
+            .flatMap { _  -> EventLoopFuture<Result<String, APIError>> in
+                context.logger.info("deleteImage 2")
                 return s3.deleteObject(deleteObjectRequest)
+                    .flatMap { _ in
+                        return context.eventLoop.makeSucceededFuture(Result<String, APIError>.success("deleted bucket object \(key)"))
+                    }
             }
-            .flatMap { _ in
-                return s3.deleteObject(deleteThumbRequest)
+            .flatMap { _ -> EventLoopFuture<Result<String, APIError>> in
+                context.logger.info("deleteImage 3")
+                return context.eventLoop.makeSucceededFuture(Result<String, APIError>.success("deleted thumbnail \(key)"))
             }
         
         futureResponse.whenComplete { result in
+            context.logger.info("deleteImage 4")
             switch result {
             case .failure(let error):
                 context.logger.info("deleteImage error: \(error.localizedDescription)")
@@ -137,6 +144,7 @@ struct ServiceHandler: EventLoopLambdaHandler {
             }
         }
         
+        context.logger.info("deleteImage 5")
         return context.eventLoop.makeSucceededFuture(Result<String, APIError>.success("Yes, this compiled, but I have no idea if this was a success or not"))
     }
 }
