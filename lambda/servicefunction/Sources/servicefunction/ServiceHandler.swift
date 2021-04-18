@@ -209,7 +209,7 @@ struct ServiceHandler {
         }
         context.logger.info("getLabels imageLabelsTable: \(imageLabelsTable)")
         let db = DynamoDB(client: awsClient, region: .euwest1)
-        let input = DynamoDB.GetItemInput(key: ["image": .s("image")], tableName: imageLabelsTable)
+        let input = DynamoDB.GetItemInput(key: ["image": .s(key)], tableName: imageLabelsTable)
         context.logger.info("getLabels 2")
 
         return db.getItem(input, type: ImageLabel.self)
