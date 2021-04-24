@@ -12,25 +12,8 @@ import SotoS3
 import NIO
 import Foundation
 
-struct Input: Codable {
-    enum Action: String, Codable {
-        case getLabels, deleteImage
-    }
-
-    let action: Action
-    let key: String
-}
-
-struct LabelsOutput: Codable {
-    let labels: [String]
-}
-
-struct DeleteOutput: Codable {
-    let result: String
-}
-
 struct ServiceHandler: EventLoopLambdaHandler {
-    typealias In = APIGateway.Request
+    typealias In = Input
     typealias Out = APIGateway.Response
     
     let awsClient: AWSClient
@@ -49,15 +32,21 @@ struct ServiceHandler: EventLoopLambdaHandler {
             }
         }
         
-        return context.eventLoop.makeSucceededFuture(())
+        return promise.futureResult.flatMap {
+            let promise = context.eventLoop.makePromise(of: Void.self)
+            self.awsClient.shutdown { error in
+                if let error = error {
+                    promise.fail(error)
+                } else {
+                    promise.succeed(())
+                }
+            }
+            return promise.futureResult
+        }
     }
     
-    func handle(context: Lambda.Context, event: APIGateway.Request) -> EventLoopFuture<Out> {
-        context.logger.info("handle 1")
-        guard let input: Input = try? event.bodyObject() else {
-            return context.eventLoop.makeSucceededFuture(APIGateway.Response(with: APIError.requestError, statusCode: .badRequest))
-        }
-        context.logger.info("handle 2")
+    func handle(context: Lambda.Context, event: In) -> EventLoopFuture<Out> {
+        let input = event
 
         switch input.action {
         case .getLabels:
@@ -65,9 +54,9 @@ struct ServiceHandler: EventLoopLambdaHandler {
                 .flatMap { result in
                     switch result {
                     case .success(let imageLabel):
-                        let names = imageLabel.labels.map { $0.name }
-                        
-                        let output = LabelsOutput(labels: names)
+                        let labels = imageLabel.labels
+
+                        let output = LabelsOutput(labels: labels)
                         let apigatewayOutput = APIGateway.Response(with: output, statusCode: .ok)
                         
                         return context.eventLoop.makeSucceededFuture(apigatewayOutput)
@@ -95,33 +84,49 @@ struct ServiceHandler: EventLoopLambdaHandler {
 
     }
     
-    func getLabels(with key: String, context: Lambda.Context) -> EventLoopFuture<Result<ImageLabel, APIError>> {
+    func getLabels(with key: String, context: Lambda.Context) -> EventLoopFuture<Result<RekEntry, APIError>> {
         guard let imageLabelsTable = Lambda.env("TABLE") else {
             return context.eventLoop.makeSucceededFuture(Result.failure(APIError.getLabelsError))
         }
         let db = DynamoDB(client: awsClient, region: .euwest1)
-        let input = DynamoDB.GetItemInput(key: ["image": .s("image")], tableName: imageLabelsTable)
+        let input = DynamoDB.GetItemInput(key: ["image": .s(key)], tableName: imageLabelsTable)
         
-        return db.getItem(input, type: ImageLabel.self)
+        return db.getItem(input, type: RekEntry.self)
             .flatMap { output in
-                guard let imageLabel = output.item else {
+                guard let rekEntry = output.item else {
                     return context.eventLoop.makeSucceededFuture(Result.failure(APIError.getLabelsError))
                 }
-                return context.eventLoop.makeSucceededFuture(Result.success(imageLabel))
+                return context.eventLoop.makeSucceededFuture(Result.success(rekEntry))
             }
     }
 
     func deleteImage(with key: String, context: Lambda.Context) -> EventLoopFuture<Result<String, APIError>> {
-        guard let imageLabelsTable = Lambda.env("TABLE") else {
+        guard let imageLabelsTable = Lambda.env("TABLE"), let bucketName = Lambda.env("BUCKET"), let thumbBucketName = Lambda.env("THUMBBUCKET") else {
             return context.eventLoop.makeSucceededFuture(Result.failure(APIError.deleteError))
         }
         
+        let s3 = S3(client: awsClient)
         let db = DynamoDB(client: awsClient, region: .euwest1)
-        let input = DynamoDB.DeleteItemInput(key: ["image": .s("image")], tableName: imageLabelsTable)
+        let input = DynamoDB.DeleteItemInput(key: ["image": .s(key)], tableName: imageLabelsTable)
         
+        let deleteObjectRequest = S3.DeleteObjectRequest(bucket: bucketName, key: key)
+        let deleteThumbRequest = S3.DeleteObjectRequest(bucket: thumbBucketName, key: key)
+
+        context.logger.info("deleteImage 1")
         return db.deleteItem(input)
-            .flatMap { _ in
-                return context.eventLoop.makeSucceededFuture(Result.success("Delete request successfully processed"))
+            .flatMap { _  -> EventLoopFuture<Result<String, APIError>> in
+                context.logger.info("deleteImage 2")
+                return s3.deleteObject(deleteObjectRequest)
+                    .flatMap { _ in
+                        return context.eventLoop.makeSucceededFuture(Result<String, APIError>.success("deleted bucket object \(key)"))
+                    }
+            }
+            .flatMap { _ -> EventLoopFuture<Result<String, APIError>> in
+                context.logger.info("deleteImage 3")
+                return s3.deleteObject(deleteThumbRequest)
+                    .flatMap { _ in
+                        return context.eventLoop.makeSucceededFuture(Result<String, APIError>.success("deleted bucket object \(key)"))
+                    }
             }
     }
 }
