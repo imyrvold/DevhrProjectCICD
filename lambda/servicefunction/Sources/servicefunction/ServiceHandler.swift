@@ -136,18 +136,5 @@ struct ServiceHandler: EventLoopLambdaHandler {
                         return context.eventLoop.makeSucceededFuture(Result<String, APIError>.success("deleted bucket object \(key)"))
                     }
             }
-        
-//        futureResponse.whenComplete { result in
-//            context.logger.info("deleteImage 4")
-//            switch result {
-//            case .failure(let error):
-//                context.logger.info("deleteImage error: \(error.localizedDescription)")
-//            case .success(let deleteResult):
-//                context.logger.info("deleteImage success: \(deleteResult)")
-//            }
-//        }
-        
-//        context.logger.info("deleteImage 5")
-//        return context.eventLoop.makeSucceededFuture(Result<String, APIError>.success("Yes, this compiled, but I have no idea if this was a success or not"))
     }
 }
