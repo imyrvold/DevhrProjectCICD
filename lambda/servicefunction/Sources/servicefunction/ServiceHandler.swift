@@ -112,17 +112,14 @@ struct ServiceHandler: EventLoopLambdaHandler {
         let deleteObjectRequest = S3.DeleteObjectRequest(bucket: bucketName, key: key)
         let deleteThumbRequest = S3.DeleteObjectRequest(bucket: thumbBucketName, key: key)
 
-        context.logger.info("deleteImage 1")
         return db.deleteItem(input)
             .flatMap { _  -> EventLoopFuture<Result<String, APIError>> in
-                context.logger.info("deleteImage 2")
                 return s3.deleteObject(deleteObjectRequest)
                     .flatMap { _ in
                         return context.eventLoop.makeSucceededFuture(Result<String, APIError>.success("deleted bucket object \(key)"))
                     }
             }
             .flatMap { _ -> EventLoopFuture<Result<String, APIError>> in
-                context.logger.info("deleteImage 3")
                 return s3.deleteObject(deleteThumbRequest)
                     .flatMap { _ in
                         return context.eventLoop.makeSucceededFuture(Result<String, APIError>.success("deleted bucket object \(key)"))

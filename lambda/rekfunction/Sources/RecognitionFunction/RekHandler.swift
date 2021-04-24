@@ -55,14 +55,11 @@ struct RekHandler: EventLoopLambdaHandler {
             let image = Rekognition.Image(s3Object: s3Object)
             let detectLabelsRequest = Rekognition.DetectLabelsRequest(image: image, maxLabels: 10, minConfidence: minConfidence)
 
-
             return getImage(of: record.s3.bucket.name, with: safeKey, context: context)
                 .flatMap { output in
                     let body = output.body
                     guard let data = body?.asData() else { return context.eventLoop.makeSucceededVoidFuture() }
-                    context.logger.info("handle 1")
                     guard let thumbnail = createThumbnail(for: data, context: context) else { return context.eventLoop.makeSucceededVoidFuture() }
-                    context.logger.info("handle got thumbnail")
 
                     return rekognitionClient.detectLabels(detectLabelsRequest)
                         .flatMap { detectLabelsResponse -> EventLoopFuture<Void> in
@@ -79,8 +76,6 @@ struct RekHandler: EventLoopLambdaHandler {
                             // Put item into table
                             return db.putItem(putRequest)
                                 .flatMap { result in
-                                    context.logger.info("handle thumbBucket: \(thumbBucket) safeKey: \(safeKey)")
-
                                     return saveThumbnail(in: thumbBucket, with: safeKey, for: thumbnail).map { _ in }
                                 }
                         }
@@ -107,9 +102,7 @@ struct RekHandler: EventLoopLambdaHandler {
             let height = MagickGetImageHeight(wand)
             let newHeight = 100
             let newWidth = 100 * width / height
-            context.logger.info("createThumbnail width: \(width) height: \(height)")
             MagickResizeImage(wand, newWidth, newHeight, LanczosFilter,1.0)
-            context.logger.info("createThumbnail newWidth: \(newWidth) newHeight: \(newHeight)")
             MagickWriteImage(wand, thumbnailpath)
         }
         DestroyMagickWand(wand)
@@ -122,9 +115,6 @@ struct RekHandler: EventLoopLambdaHandler {
         let s3 = S3(client: awsClient)
         let safeKey = thekey.replacingOccurrences(of: "%3A", with: ":")
         guard let key = safeKey.removingPercentEncoding else { return context.eventLoop.makeSucceededFuture(S3.GetObjectOutput()) }
-        let tmpKey = key.replacingOccurrences(of: "/", with: "")
-        let downloadPath = "/tmp/\(UUID().uuidString)\(tmpKey)"
-        let uploadPath = "/tmp/resised-\(tmpKey)"
         let getObjectRequest = S3.GetObjectRequest(bucket: bucket, key: key)
 
         return s3.getObject(getObjectRequest)
