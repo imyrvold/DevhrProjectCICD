@@ -214,7 +214,7 @@ export class DevhrProjectStack extends cdk.Stack {
     new cognito.CfnIdentityPoolRoleAttachment(this, "IdentityPoolRoleAttachment", {
       identityPoolId: identityPool.ref,
       roles: { authenticated: authenticatedRole.roleArn },
-    });
+    })
 
     // Export values of Cognito
     new CfnOutput(this, "UserPoolId", {
