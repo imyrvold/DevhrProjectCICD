@@ -145,7 +145,7 @@ export class DevhrProjectStack extends cdk.Stack {
 
     const userPoolClient = new cognito.UserPoolClient(this, "UserPoolClient", {
       userPool,
-      generateSecret: true, // Don't need to generate secret for web app running on browsers
+      generateSecret: false, // Don't need to generate secret for web app running on browsers
     })
 
     const identityPool = new cognito.CfnIdentityPool(this, "ImageRekognitionIdentityPool", {
