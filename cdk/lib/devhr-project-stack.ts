@@ -137,18 +137,21 @@ export class DevhrProjectStack extends cdk.Stack {
     // =====================================================================================
     // Cognito User Pool Authentication
     // =====================================================================================
-    const userPool = new cognito.UserPool(this, "UserPool", {
+    const userPool = new cognito.UserPool(this, "ImageRekognitionUserPool", {
+      userPoolName: "ImageRekognitionUserPool",
       selfSignUpEnabled: true, // Allow users to sign up
       autoVerify: { email: true }, // Verify email addresses by sending a verification code
       signInAliases: { username: true, email: true }, // Set email as an alias
     })
 
-    const userPoolClient = new cognito.UserPoolClient(this, "UserPoolClient", {
+    const userPoolClient = new cognito.UserPoolClient(this, "ImageRekognitionUserPoolClient", {
+      userPoolClientName: "ImageRekognitionUserPoolClient",
       userPool,
       generateSecret: true, // Don't need to generate secret for web app running on browsers
     })
 
     const identityPool = new cognito.CfnIdentityPool(this, "ImageRekognitionIdentityPool", {
+      identityPoolName: "ImageRekognitionIdentityPool",
       allowUnauthenticatedIdentities: false, // Don't allow unathenticated users
       cognitoIdentityProviders: [
         {
