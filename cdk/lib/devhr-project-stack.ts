@@ -190,7 +190,8 @@ export class DevhrProjectStack extends cdk.Stack {
       new iam.PolicyStatement({
         actions: [
           "s3:GetObject",
-          "s3:PutObject"
+          "s3:PutObject",
+          "s3:PutObjectAcl"
         ],
         effect: iam.Effect.ALLOW,
         resources: [
